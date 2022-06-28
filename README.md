@@ -1,3 +1,9 @@
-# Pawn.Net
+# Pawnx64.Net
 
-A simple, efficient wrapper around [PawnX64](https://raw.githubusercontent.com/rybakatchya/Pawn.Net/main/res/readme.png?token=GHSAT0AAAAAABV6CNK4TVQ5AY2WMMQAACIQYV3A3DA).
+A simple, efficient wrapper around [PawnX64](https://github.com/rybakatchya/Pawn.Net/blob/main/PawnX64.md).
+
+
+When benchmarked against other .net scripting solutions PawnX64.Net performs much better.
+
+Pawn
+![Alt text](res/pawn_benchmark.png?raw=true "Pawn")
