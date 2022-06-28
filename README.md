@@ -5,5 +5,5 @@ A simple, efficient wrapper around [PawnX64](https://github.com/rybakatchya/Pawn
 
 When benchmarked against other .net scripting solutions PawnX64.Net performs much better.
 
-Pawn
+Pawn.
 ![Alt text](res/pawn_benchmark.png?raw=true "Pawn")
