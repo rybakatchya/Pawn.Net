@@ -11,8 +11,9 @@ When benchmarked against other .net scripting solutions PawnX64.Net performs muc
 ## Lua
 ![Alt text](res/lua_benchmark.png?raw=true "Lua")
 
-## Js
-![Alt text](res/js_benchmark.png?raw=true "Js")
+## js
+![Alt text](res/js_benchmark.png?raw=true "Lua")
+
 
 ## Reflection(C#).
 ![Alt text](res/reflection_benchmark.png?raw=true "Pawn")
