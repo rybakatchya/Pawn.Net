@@ -8,14 +8,14 @@ When benchmarked against other .net scripting solutions PawnX64.Net performs muc
 ## Pawnx64.net
 ![Alt text](res/pawn_benchmark.png?raw=true "Pawnx64.net")
 
-## Lua
+## Lua via MoonSharp
 ![Alt text](res/lua_benchmark.png?raw=true "Lua")
 
-## js
-![Alt text](res/js_benchmark.png?raw=true "Lua")
+## js via Jint
+![Alt text](res/js_benchmark.png?raw=true "Js")
 
 
-## Reflection(C#).
+## C# via reflection
 ![Alt text](res/reflection_benchmark.png?raw=true "Pawn")
 
 ## Why use Pawnx64.Net and not reflection then?
