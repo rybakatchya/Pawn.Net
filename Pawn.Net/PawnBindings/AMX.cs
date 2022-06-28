@@ -5,6 +5,22 @@ using System.Runtime.InteropServices;
 
 namespace PawnBindings
 {
+    public class AMXExeption : Exception
+    {
+        public AMXExeption()
+        {
+        }
+
+        public AMXExeption(string message)
+            : base(message)
+        {
+        }
+
+        public AMXExeption(string message, Exception inner)
+            : base(message, inner)
+        {
+        }
+    }
     public class AMX
     {
         private readonly IntPtr amxPtr;
@@ -39,71 +55,82 @@ namespace PawnBindings
         }
 
         [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
-        public unsafe AmxStatus ReadInt32(int index, out int value)
+        public unsafe int ReadInt32RefArg(int index)
         {
             var stk = amx_register_read(amxPtr, AmxRegister.AMX_STK);
 
             long val;
 
             var status = amx_cell_read(amxPtr, stk + Marshal.SizeOf<long>() * index, &val);
+            if(status != AmxStatus.AMX_SUCCESS)
+            {
+                throw new AMXExeption("[AMXEXCEPTION]: " + status.ToString());
+            }
+            return (int)val;
 
-            value = (int)val;
-
-            return status;
-            
         }
 
         [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
-        public unsafe AmxStatus WriteInt32(int index, int value)
+        public unsafe void WriteInt32RefArg(int index, int value)
         {
             var stk = amx_register_read(amxPtr, AmxRegister.AMX_STK);
             long valuePtr = 0;
             amx_cell_read(amxPtr, stk + Marshal.SizeOf<long>() * index, &valuePtr);
             var status = amx_cell_write(amxPtr, valuePtr, value);
+            if(status == AmxStatus.AMX_SUCCESS)
+            {
+                throw new AMXExeption("[AMXEXCEPTION]: " + status.ToString());
+            }
             
-            return status;
         }
 
         [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
-        public unsafe AmxStatus ReadInt64(int index, out long value)
+        public unsafe long ReadInt64RefArg(int index)
         {
             var stk = amx_register_read(amxPtr, AmxRegister.AMX_STK);
             long val;
 
             var status = amx_cell_read(amxPtr, stk + Marshal.SizeOf<long>() * index, &val);
-            value = val;
-            return status;
+
+            if (status == AmxStatus.AMX_SUCCESS)
+            {
+                throw new AMXExeption("[AMXEXCEPTION]: " + status.ToString());
+            }
+            return val;
+            
         }
 
         [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
-        public unsafe AmxStatus WriteInt64(int index, long value)
+        public unsafe void WriteInt64RefArg(int index, long value)
         {
             var stk = amx_register_read(amxPtr, AmxRegister.AMX_STK);
             long valuePtr = 0;
             amx_cell_read(amxPtr, stk + Marshal.SizeOf<long>() * index, &valuePtr);
             var status = amx_cell_write(amxPtr, valuePtr, value);
-            
-            return status;
+
+            if (status == AmxStatus.AMX_SUCCESS)
+            {
+                throw new AMXExeption("[AMXEXCEPTION]: " + status.ToString());
+            }
         }
 
         [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
-        public unsafe AmxStatus WriteFloat(int index, float value)
+        public unsafe void WriteFloatRefArg(int index, float value)
         {
-            var val = ReinterpretCast<float, long>(value);
-
+            //var val = ReinterpretCast<float, long>(value);
+            var val = ReinterpretCast<double, long>(value);
             var stk = amx_register_read(amxPtr, AmxRegister.AMX_STK);
             long valuePtr = 0;
             amx_cell_read(amxPtr, stk + Marshal.SizeOf<long>() * index, &valuePtr);
             var status = amx_cell_write(amxPtr, valuePtr, val);
-
-
-
-            return status;
-
+            if (status == AmxStatus.AMX_SUCCESS)
+            {
+                throw new AMXExeption("[AMXEXCEPTION]: " + status.ToString());
+            }
         }
 
         [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
-        public unsafe AmxStatus ReadFloat(int index, out float value)
+        public unsafe float ReadFloatRefArg(int index)
 
 
         {
@@ -111,8 +138,12 @@ namespace PawnBindings
 
             long val;
             var status = amx_cell_read(amxPtr, stk + Marshal .SizeOf<long>() * index, &val);
-            value = (float)ReinterpretCast<long, double>(val);
-            return status;
+            
+            if (status == AmxStatus.AMX_SUCCESS)
+            {
+                throw new AMXExeption("[AMXEXCEPTION]: " + status.ToString());
+            }
+            return (float)ReinterpretCast<long, double>(val); ;
 
         }
         [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
@@ -126,7 +157,7 @@ namespace PawnBindings
         }
 
         [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
-        public unsafe AmxStatus WriteString(int index, string value)
+        public unsafe void WriteStringRefArg(int index, string value)
         {
             var bytes = System.Text.Encoding.UTF8.GetBytes(value);
 
@@ -134,8 +165,10 @@ namespace PawnBindings
 
             long str_ptr = 0;
             var status = amx_cell_read(amxPtr, stk + Marshal.SizeOf<long>() * index, &str_ptr);
-            if (status != AmxStatus.AMX_SUCCESS)
-                return status;
+            if (status == AmxStatus.AMX_SUCCESS)
+            {
+                throw new AMXExeption("[AMXEXCEPTION]: " + status.ToString());
+            }
             var str_base = amx_mem_translate(amxPtr, str_ptr, value.Length);
 
            
@@ -146,25 +179,30 @@ namespace PawnBindings
                 cells[i] = (long)bytes[i];
             }
             status = amx_cell_write(amxPtr, stk + Marshal.SizeOf<long>() * index, (long)str_base);
-            
-
-            return status;
+            if (status == AmxStatus.AMX_SUCCESS)
+            {
+                throw new AMXExeption("[AMXEXCEPTION]: " + status.ToString());
+            }
         }
         [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
-        public unsafe string ReadString(int index)
+        public unsafe string ReadStringRefArg(int index)
         {
             var stk = amx_register_read(amxPtr, AmxRegister.AMX_STK);
 
             long str_len = 0;
             var status = amx_cell_read(amxPtr, stk + Marshal.SizeOf<long>(), &str_len);
 
-            if (status != AmxStatus.AMX_SUCCESS)
-                return null;
+            if (status == AmxStatus.AMX_SUCCESS)
+            {
+                throw new AMXExeption("[AMXEXCEPTION]: " + status.ToString());
+            }
 
             long str_ptr = 0;
             status = amx_cell_read(amxPtr, stk + Marshal.SizeOf<long>() * index, &str_ptr);
-            if (status != AmxStatus.AMX_SUCCESS)
-                return null;
+            if (status == AmxStatus.AMX_SUCCESS)
+            {
+                throw new AMXExeption("[AMXEXCEPTION]: " + status.ToString());
+            }
 
             var str_base = amx_mem_translate(amxPtr, str_ptr, str_len);
 
