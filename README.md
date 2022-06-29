@@ -2,6 +2,19 @@
 
 A simple, efficient wrapper around [PawnX64](https://github.com/rybakatchya/Pawn.Net/blob/main/PawnX64.md).
 
+## What is it?
+Pawn is a simple, typeless, scripting language with a C-like syntax. The Pawn compiler outputs P-code (or bytecode) that subsequently runs on an
+abstract machine. Execution speed, stability, simplicity and a small footprint were essential design criterions for both the language and the abstract
+machine. Pawn prealloates all memory at startup and 
+
+This is an updated version of the pawn scripting language. Using Pawnx64 as a jit compiler. Please see [PawnX64](https://github.com/rybakatchya/Pawn.Net/blob/main/PawnX64.md)
+for a list of changes from the original language.
+
+## What is it useful for?
+Allowing end users to extend your applications in a safe sandboxed enviroment. There is no built in standard library so the language has no functions to call
+unless you implement them. This is greate for securely executing untrusted code on any machine.
+
+Pawn has no runtime memory allocations or even a garbage collector, this makes pawn an ideal choice for making a mod sdk for video games.
 
 When benchmarked against other .net scripting solutions PawnX64.Net performs much better.
 
