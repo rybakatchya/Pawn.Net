@@ -7,10 +7,6 @@ When benchmarked against other .net scripting solutions PawnX64.Net performs muc
 
 ## Benchcmarks 
 
-| Method									| Mean | StdDev | Gen 0 | Allocated
-|-------------------------------------------|
-| Reflection CallMethod1000TimesWithObject	|
-
 ## Pawnx64.net
 ![Alt text](res/pawn_benchmark.png?raw=true "Pawnx64.net")
 
