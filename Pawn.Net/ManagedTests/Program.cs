@@ -7,12 +7,12 @@ namespace ManagedTests
     internal class Program
     {
        
-        static int Print(IntPtr loader, IntPtr _amx, IntPtr userdata)
+        static unsafe int Print(IntPtr loader, IntPtr _amx, IntPtr userdata, IntPtr returnValue, long argc, IntPtr argv)
         {
-            //Start at 1 not 0.
-            var cell = amx.GetCell(1);
-
-            Console.WriteLine();
+             
+            var span = new ReadOnlySpan<long>(argv.ToPointer(), (int)argc);
+            var str = AmxCell.FromVirtualAddress(span[1]);
+            Console.WriteLine(str.ReadString(_amx, (int)span[0]));
             return 1;
         }
 
@@ -27,15 +27,15 @@ namespace ManagedTests
             loader.RegisterNative("managedPrint", Print);
           
 
-            //loader.LoadLibrary("TestPlugin.dll");
-            //loader.LoadLibrary("NativePluginTest.dll");
             
             long main = loader.LoadFile("ProjectTemplate/main.amx");
-            //AMXCell tagTest = loader.FindPublic("TagTest");
+            
 
             amx = loader.GetAMX();
-
-            amx.Call(main);
+            
+            AmxStatus status;
+            if((status = amx.Call(main)) != AmxStatus.AMX_SUCCESS)
+                Console.WriteLine(status.ToString());
 
             var test = new TagTestData()
             {
@@ -49,6 +49,8 @@ namespace ManagedTests
                 id = 344,
                 rot = 3.2f
             };
+
+            /*
             long val = (long)amx.Allocator.Allocate((ulong)Marshal.SizeOf<TagTestData>());
             
             var ptr = amx.Translate((long)val, Marshal.SizeOf<TagTestData>());
@@ -56,8 +58,8 @@ namespace ManagedTests
             var span = new Span<TagTestData>(ptr.ToPointer(), Marshal.SizeOf<TagTestData>());
             span[0] = test;
             var idx = loader.FindPublic("runTest");
-            var stat = amx.Call(amx, idx,1, &val); 
-            Console.WriteLine(stat.ToString());
+            var stat = amx.Call(amx, idx,1, &val); */
+            //Console.WriteLine(stat.ToString());
             Console.ReadLine();
         }
     }

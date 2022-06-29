@@ -8,11 +8,20 @@ using System.Runtime.InteropServices;
 
 namespace PawnBindings
 {
+    
     public class AMXLoader : IDisposable
     {
         private IntPtr amxLoaderPtr;
         private AMX amx;
-        public delegate int NativeDelegate(IntPtr loader, IntPtr amx, IntPtr userdata);
+
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public unsafe delegate int NativeDelegate(IntPtr loader,
+            IntPtr amx, IntPtr userdata, IntPtr returnValue,
+            long argc,
+            IntPtr argv
+            );
+
         private List<object> loadedPlugins = new List<object>();
 
         //Have to keep a list of these natives to make sure they stay in scope.
@@ -100,6 +109,8 @@ namespace PawnBindings
         private delegate void InitDelegate();
         public void RegisterNative(string name, NativeDelegate native)
         {
+            //NativeDelegate del = Marshal.GetFunctionPointerForDelegate(native);
+            natives.Add(native);
             amx_loader_register_native(amxLoaderPtr, name, Marshal.GetFunctionPointerForDelegate(native));
         }
 

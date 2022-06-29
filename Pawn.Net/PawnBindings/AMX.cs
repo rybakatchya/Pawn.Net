@@ -31,7 +31,7 @@ namespace PawnBindings
         public AmxAlloc Allocator => allocator;
 
         private static ArrayPool<byte> bytes;
-        //private readonly ArrayPool<long> cells;
+
         public static ArrayPool<byte> ByteBuffer => bytes;
         private readonly AmxAlloc allocator;
 
@@ -40,7 +40,7 @@ namespace PawnBindings
         {
             allocator = new AmxAlloc(this);
             amxPtr = amx;
-            //cells = ArrayPool<long>.Create(1024, 1024);
+
             bytes = ArrayPool<byte>.Create(1024, 1024);
         }
 
@@ -232,8 +232,8 @@ namespace PawnBindings
         {
             long* cell = (long*)Marshal.AllocHGlobal(Marshal.SizeOf<AmxCell>() * cells.Length);
             var span = new Span<long>(cell, cells.Length);
-            
-            for(int i = 0; i < cells.Length; i++)
+
+            for (int i = 0; i < cells.Length; i++)
             {
                 span[i] = cells[i].Pointer;
             }
@@ -242,8 +242,8 @@ namespace PawnBindings
             return status;
         }
 
-        
-       
+
+
 
 
 
@@ -299,17 +299,17 @@ namespace PawnBindings
         public const string dll = "amx64.dll";
         [DllImport(dll)]
         internal static unsafe extern AmxStatus amx_push_n(IntPtr amx, long* v, long count);
-                [DllImport(dll)]
+        [DllImport(dll)]
         internal static extern AmxStatus amx_run(IntPtr amx, long cip);
-        
+
         [DllImport(dll)]
         internal static extern AmxStatus amx_call(IntPtr amx, long cip);
 
-        
+
         [DllImport(dll)]
         internal static unsafe extern AmxStatus amx_call_n(IntPtr amx, long cip, long argc, long* argv);
 
-     
+
         [DllImport(dll)]
         internal static unsafe extern AmxStatus amx_call_v(IntPtr amx, long cip, long argc, long* longs);
 
@@ -319,7 +319,7 @@ namespace PawnBindings
         [DllImport(dll)]
         internal static extern long amx_register_read(IntPtr amx, AmxRegister reg);
 
-        [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
+        
         [DllImport(dll)]
         internal static extern void amx_register_write(IntPtr amx, AmxRegister reg, long val);
 
@@ -328,8 +328,15 @@ namespace PawnBindings
 
         [DllImport(dll)]
         internal static extern AmxStatus amx_cell_write(IntPtr amx, long va, long val);
-       
+
+        [DllImport(dll)]
+        internal static extern long amx_strlen(IntPtr amx, long va);
         [DllImport(dll)]
         internal static extern AmxStatus amx_push(IntPtr amx, long v);
+
+        public void AMXStrlen(long va)
+        {
+            amx_strlen(amxPtr, va);
+        }
     }
 }
