@@ -32,7 +32,13 @@ AMX_EXPORT struct amx* amx_loader_get_amx(struct amx_loader* loader);
 /**
  * The callback type for a native.
  */
-typedef int (*amx_loader_native)(struct amx_loader* loader, struct amx* amx, void* userdata);
+typedef int (*amx_loader_native)(
+  struct amx_loader* loader,
+  struct amx* amx,
+  void* userdata,
+  amx_cell* return_value,
+  amx_cell argc,
+  const amx_cell* argv);
 
 /**
  * Registers a native with this loader instance.

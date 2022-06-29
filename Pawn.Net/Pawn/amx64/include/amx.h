@@ -15,21 +15,34 @@
 #endif
 
 #ifndef AMX_STATIC
-#if defined(WIN32) || defined(_WIN32)
+#if defined(_MSC_VER)
 #ifdef amx64_EXPORTS
 #define AMX_EXPORT __declspec(dllexport)
 #else
 #define AMX_EXPORT __declspec(dllimport)
 #endif
-#elif defined(unix) || defined(__unix__) || defined(__unix)
+#elif defined(__GNUC__)
 #ifdef amx64_EXPORTS
 #define AMX_EXPORT __attribute__((visibility("default")))
 #else
 #define AMX_EXPORT
 #endif
+#else
+#define AMX_EXPORT
 #endif
 #else
 #define AMX_EXPORT
+#endif
+
+// yes this is compiler specific, but every major compiler has it
+#if defined __has_include
+#if __has_include(<unistd.h>)
+#define AMX_POSIX 1
+#endif
+#endif
+
+#if !defined(AMX_POSIX) && (defined(__unix__) || defined(__APPLE__))
+#define AMX_POSIX 1
 #endif
 
 AMX_EXTERN_C_BEGIN
@@ -50,6 +63,7 @@ enum amx_status
   AMX_MALFORMED_CODE,
   AMX_UNSUPPORTED,
   AMX_COMPILE_ERROR,
+  AMX_INVALID_ARGUMENT,
 
   // loader errors
 
@@ -186,7 +200,9 @@ enum amx_register
   AMX_FRM,// 32 bit
   AMX_STK,// 32 bit
   AMX_HEA,// 32 bit
-  // AMX_DAT, // use amx_cell_{read|write} instead
+#ifdef AMX_EXPOSE_DANGEROUS_FEATURES
+  AMX_DAT, // use amx_cell_{read|write} instead
+#endif
   // AMX_CIP, // not implemented
   // AMX_COD, // not implemented
   // AMX_STP, // not implemented
@@ -299,12 +315,28 @@ AMX_EXPORT enum amx_status amx_call_n(struct amx* amx, amx_cell cip, amx_cell ar
  */
 AMX_EXPORT enum amx_status amx_call_v(struct amx* amx, amx_cell cip, amx_cell argc, ...);
 
-#if defined(unix) || defined(__unix__) || defined(__unix)
+/**
+ * Get the length of a null terminated unpacked string at @p va.
+ * @param amx The instance.
+ * @param va The start of the string.
+ * @return Length of the string in characters if valid, -1 otherwise.
+ */
+AMX_EXPORT int64_t amx_strlen(struct amx* amx, amx_cell va);
+
+/**
+ * Get the length of a null terminated packed string at @p va.
+ * @param amx The instance.
+ * @param va The start of the string.
+ * @return Length of the string in characters if valid, -1 otherwise.
+ */
+AMX_EXPORT int64_t amx_pstrlen(struct amx* amx, amx_cell va);
+
+#if defined(AMX_POSIX)
 
 #include <signal.h>
 
 /**
- * (UNIX only) Signal handler that you must call when a SIGFPE, SIGSEGV or SIGTRAP signal is received
+ * (POSIX only) Signal handler that you must call when a SIGFPE, SIGSEGV or SIGTRAP signal is received
  * by the current process.
  * @param signo Signal number.
  * @param info The reason why the signal was generated.

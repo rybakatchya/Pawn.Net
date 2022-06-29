@@ -23,7 +23,7 @@ namespace PawnBindings
             return new AMXLoader() { amxLoaderPtr = amx_loader_alloc() };
         }
 
-        public unsafe AmxStatus LoadFile(string filename, out AMXCell mainIndex)
+        public unsafe long LoadFile(string filename)
         {
             var bytes = File.ReadAllBytes(filename);
 
@@ -32,8 +32,9 @@ namespace PawnBindings
                 long val = 0;
                 var status = amx_loader_load(amxLoaderPtr, (IntPtr)ptr, bytes.Length, &val);
                 amx = new AMX(amx_loader_get_amx(amxLoaderPtr));
-                mainIndex = new AMXCell(val);
-                return status;
+                if(status != AmxStatus.AMX_SUCCESS)
+                    throw new Exception(status.ToString());
+                return val;
             }
         }
 
@@ -138,21 +139,20 @@ namespace PawnBindings
             amx_loader_free(amxLoaderPtr);
         }
 
-        public AMXCell FindPublic(string name)
+        public long FindPublic(string name)
         {
             var ptr = amx_loader_find_public(amxLoaderPtr, name);
-            Console.WriteLine(ptr.ToString());
-            return new AMXCell(ptr);
+            return ptr;
         }
 
-        public AMXCell FindPubVar(string name)
+        public long FindPubVar(string name)
         {
-            return new AMXCell(amx_loader_find_pubvar(amxLoaderPtr, name));
+            return amx_loader_find_pubvar(amxLoaderPtr, name);
         }
 
-        public AMXCell FindTag(string name)
+        public long FindTag(string name)
         {
-            return new AMXCell(amx_loader_find_tag(amxLoaderPtr, name));
+            return amx_loader_find_tag(amxLoaderPtr, name);
         }
     }
 }

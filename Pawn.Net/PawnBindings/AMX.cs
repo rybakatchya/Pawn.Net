@@ -21,6 +21,8 @@ namespace PawnBindings
         {
         }
     }
+
+
     public class AMX
     {
         private readonly IntPtr amxPtr;
@@ -28,9 +30,9 @@ namespace PawnBindings
 
         public AmxAlloc Allocator => allocator;
 
-        private readonly ArrayPool<byte> bytes;
-        private readonly ArrayPool<AMXCell> cells;
-
+        private static ArrayPool<byte> bytes;
+        //private readonly ArrayPool<long> cells;
+        public static ArrayPool<byte> ByteBuffer => bytes;
         private readonly AmxAlloc allocator;
 
         [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
@@ -38,7 +40,7 @@ namespace PawnBindings
         {
             allocator = new AmxAlloc(this);
             amxPtr = amx;
-            cells = ArrayPool<AMXCell>.Create(1024, 1024);
+            //cells = ArrayPool<long>.Create(1024, 1024);
             bytes = ArrayPool<byte>.Create(1024, 1024);
         }
 
@@ -48,29 +50,31 @@ namespace PawnBindings
             return amx_mem_translate(amxPtr, va, count);
         }
 
-        [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
-        public AmxStatus Call(AMXCell cip)
-        {
-            return amx_call(amxPtr, cip.Pointer);
-        }
 
         [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
-        public unsafe int ReadInt32RefArg(int index)
+        public AmxStatus Call(long cip)
+        {
+            return amx_call(amxPtr, cip);
+        }
+
+        public unsafe long GetCell(int index)
         {
             var stk = amx_register_read(amxPtr, AmxRegister.AMX_STK);
-
-            long val;
-
-            var status = amx_cell_read(amxPtr, stk + Marshal.SizeOf<long>() * index, &val);
-            if(status != AmxStatus.AMX_SUCCESS)
-            {
-                throw new AMXExeption("[AMXEXCEPTION]: " + status.ToString());
-            }
-            return (int)val;
-
+            long valuePtr = 0;
+            var status = amx_cell_read(amxPtr, stk + Marshal.SizeOf<long>() * index, &valuePtr);
+            if (status != AmxStatus.AMX_SUCCESS)
+                throw new AMXExeption(status.ToString());
+            return valuePtr;
         }
 
-        [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
+        public unsafe void SetCell(int index, long va, long value)
+        {
+            var status = amx_cell_write(amxPtr, va, value);
+            if (status != AmxStatus.AMX_SUCCESS)
+                throw new AMXExeption(status.ToString());
+
+        }
+        /*[MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
         public unsafe void WriteInt32RefArg(int index, int value)
         {
             var stk = amx_register_read(amxPtr, AmxRegister.AMX_STK);
@@ -221,72 +225,42 @@ namespace PawnBindings
             
 
             return str;
-        }
+        }*/
 
         [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
-        public unsafe AmxStatus Call(AMXCell cip, AMXCell[] cells)
+        public unsafe AmxStatus Call(long cip, AmxCell[] cells)
         {
-            long* cell = (long*)Marshal.AllocHGlobal(Marshal.SizeOf<AMXCell>() * cells.Length);
+            long* cell = (long*)Marshal.AllocHGlobal(Marshal.SizeOf<AmxCell>() * cells.Length);
             var span = new Span<long>(cell, cells.Length);
             
             for(int i = 0; i < cells.Length; i++)
             {
                 span[i] = cells[i].Pointer;
             }
-            var status = amx_call_n(amxPtr, cip.Pointer, cells.Length, cell);
+            var status = amx_call_n(amxPtr, cip, cells.Length, cell);
             Marshal.FreeHGlobal((IntPtr)cell);
             return status;
         }
 
-        [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
-        public AMXCell RegisterRead(AmxRegister register)
-        {
-            return new AMXCell(amx_register_read(amxPtr, register));
-        }
+        
+       
 
-        [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
-        public void RegisterWrite(AmxRegister register, AMXCell value)
-        {
-            amx_register_write(amxPtr, register, value.Pointer);
-        }
+
 
         [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
-        public unsafe AmxStatus CellReadAligned(int index, out AMXCell value)
+        public AmxStatus Push(long address)
         {
-            if (index == 0)
-            {
-                value = new AMXCell(0);
-                return AmxStatus.AMX_ACCESS_VIOLATION;
-            }
-            var stk = amx_register_read(amxPtr, AmxRegister.AMX_STK);
-            long val = 0;
-            var status = amx_cell_read(amxPtr, stk + Marshal.SizeOf<long>() * index , &val);
-            value = new AMXCell(val);
-            return status;
-        }
-
-        public unsafe AmxStatus CellWriteAligned(int index, AMXCell value)
-        {
-            var stk = amx_register_read(amxPtr, AmxRegister.AMX_STK);
-            var status = amx_cell_write(amxPtr, stk + Marshal.SizeOf<long>() * index, value.Pointer);
-            amx_register_write(amxPtr, AmxRegister.AMX_STK, value.Pointer);
-            return status;
-        }
-
-        [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
-        public AmxStatus Push(AMXCell cell)
-        {
-            return amx_push(amxPtr, cell.Pointer);
+            return amx_push(amxPtr, address);
         }
         [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
-        public unsafe AmxStatus Call(AMXCell index, long argc, long* longs)
+        public unsafe AmxStatus Call(long va, long argc, long* longs)
         {
-            return amx_call_v(amxPtr, index.Pointer, argc, longs);
+            return amx_call_v(amxPtr, va, argc, longs);
         }
 
 
 
-        public unsafe AmxStatus Call(AMX amx, AMXCell cip, long argc, long* args)
+        public unsafe AmxStatus Call(AMX amx, long va, long argc, long* args)
         {
 
             //1.read STK and FRM, save both           
@@ -311,7 +285,7 @@ namespace PawnBindings
             }
 
             // 6.use amx_run on the cip
-            var status = amx_run(amxPtr, cip.Pointer);
+            var status = amx_run(amxPtr, va);
 
             // 7.restore the old STK and FRM
             amx_register_write(amxPtr, AmxRegister.AMX_STK, stk);

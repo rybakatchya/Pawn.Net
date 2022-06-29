@@ -58,14 +58,14 @@ public class NativeLibrary
 #elif LINUX
 
 			handle = DlOpen(null, LibDlFlags.Local | LibDlFlags.Now);
+#endif
 		}
 		catch
 		{
 			handle = IntPtr.Zero;
 			return false;
 		}
-#endif
-		return handle != IntPtr.Zero;
+			return handle != IntPtr.Zero;
 	}
 
 	public static IntPtr Load(string name)

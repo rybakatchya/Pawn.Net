@@ -5,6 +5,20 @@
 #include <fstream>
 #include <vector>
 
+#if defined(unix) || defined(__unix__) || defined(__unix)
+#include <signalmgr.h>
+void register_signal_handlers()
+{
+  signalmgr_register_signal(SIGFPE, &amx_handle_signal);
+  signalmgr_register_signal(SIGSEGV, &amx_handle_signal);
+  signalmgr_register_signal(SIGTRAP, &amx_handle_signal);
+}
+#else
+void register_signal_handlers()
+{
+}
+#endif
+
 bool read_all(const char* path, std::vector<uint8_t>& data)
 {
   data.clear();
@@ -38,6 +52,7 @@ bool extract_string(std::string& out, amx* amx, amx_cell va)
 
 int main(int argc, char** argv)
 {
+  register_signal_handlers();
   if (argc < 2)
   {
     fprintf(stderr, "No input given.\nUsage: %s <amx file>\n", argv[0]);
@@ -56,17 +71,11 @@ int main(int argc, char** argv)
   amx_loader_register_native(
     loader,
     "my_print",
-    [](struct amx_loader* loader, struct amx* amx, void* userdata) -> int {
-      const auto stk = amx_register_read(amx, AMX_STK);
-      amx_cell str_ptr{};
-      auto status = amx_cell_read(amx, stk + sizeof(amx_cell), &str_ptr);
-      if (status != AMX_SUCCESS)
-        return 0;
+    [](struct amx_loader* loader, struct amx* amx, void* userdata, amx_cell* return_value, amx_cell argc, const amx_cell* argv) -> int {
       std::string text;
-      if (!extract_string(text, amx, str_ptr))
+      if (!extract_string(text, amx, argv[0]))
         return 0;
       printf("%s\n", text.c_str());
-      amx_register_write(amx, AMX_PRI, 0);
       return 1;
     });
 
