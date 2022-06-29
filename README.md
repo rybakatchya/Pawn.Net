@@ -6,11 +6,9 @@ A simple, efficient wrapper around [PawnX64](https://github.com/rybakatchya/Pawn
 When benchmarked against other .net scripting solutions PawnX64.Net performs much better.
 
 ##Benchcmarks
-|   |   |   |   |   |
-|---|---|---|---|---|
-|   |   |   |   |   |
-|   |   |   |   |   |
-|   |   |   |   |   |
+| Method									| Mean | StdDev | Gen 0 | Allocated
+|-------------------------------------------|
+| Reflection CallMethod1000TimesWithObject	|
 
 ## Pawnx64.net
 ![Alt text](res/pawn_benchmark.png?raw=true "Pawnx64.net")
