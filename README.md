@@ -5,7 +5,8 @@ A simple, efficient wrapper around [PawnX64](https://github.com/rybakatchya/Pawn
 
 When benchmarked against other .net scripting solutions PawnX64.Net performs much better.
 
-##Benchcmarks
+## Benchcmarks 
+
 | Method									| Mean | StdDev | Gen 0 | Allocated
 |-------------------------------------------|
 | Reflection CallMethod1000TimesWithObject	|
